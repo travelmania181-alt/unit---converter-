@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Unit Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+    .card {
+      background: #161b22;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #58a6ff;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-size: 15px;
+    }
+    .swap-btn {
+      display: block;
+      margin: 10px auto;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #238636;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .swap-btn:hover {
+      background: #2ea043;
+    }
+    .result {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .copy-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #1f6feb;
+      color: white;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background: #388bfd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Σ Free Unit Converter</h1>
+    <div class="card">
+      <label for="type">Measurement type</label>
+      <select id="type">
+        <option value="length">Length</option>
+        <option value="weight">Weight</option>
+        <option value="temperature">Temperature</option>
+      </select><label for="decimals">Decimal places</label>
+  <select id="decimals">
+    <option value="0">0</option>
+    <option value="2" selected>2</option>
+    <option value="4">4</option>
+  </select>
+
+  <label for="inputValue">Enter value</label>
+  <input type="number" id="inputValue" value="1" />
+
+  <label for="fromUnit">From unit</label>
+  <select id="fromUnit"></select>
+
+  <button class="swap-btn" id="swapBtn">⇅ Swap</button>
+
+  <label for="toUnit">To unit</label>
+  <select id="toUnit"></select>
+
+  <div class="result" id="resultBox">Result will appear here</div>
+  <button class="copy-btn" id="copyBtn">Copy</button>
+</div>
+
+  </div>  <script>
+    const typeEl = document.getElementById('type');
+    const decimalsEl = document.getElementById('decimals');
+    const inputValueEl = document.getElementById('inputValue');
+    const fromUnitEl = document.getElementById('fromUnit');
+    const toUnitEl = document.getElementById('toUnit');
+    const resultBox = document.getElementById('resultBox');
+    const swapBtn = document.getElementById('swapBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    const units = {
+      length: ['m','cm','km','inch','ft'],
+      weight: ['kg','g','lb'],
+      temperature: ['C','F','K']
+    };
+
+    function populateUnits(type) {
+      fromUnitEl.innerHTML = units[type].map(u => `<option value="${u}">${u}</option>`).join('');
+      toUnitEl.innerHTML = units[type].map(u => `<option value="${u}">${u}</option>`).join('');
+      if (units[type][1]) toUnitEl.value = units[type][1];
+    }
+
+    function convert() {
+      let val = parseFloat(inputValueEl.value);
+      let from = fromUnitEl.value;
+      let to = toUnitEl.value;
+      let decimals = parseInt(decimalsEl.value);
+      if (isNaN(val)) { resultBox.textContent = 'Enter a number'; return; }
+      let result = val;
+      if (typeEl.value === 'length') {
+        let m = from === 'cm' ? val/100 : from === 'km' ? val*1000 : from === 'inch' ? val*0.0254 : from === 'ft' ? val*0.3048 : val;
+        result = to === 'cm' ? m*100 : to === 'km' ? m/1000 : to === 'inch' ? m/0.0254 : to === 'ft' ? m/0.3048 : m;
+      }
+      else if (typeEl.value === 'weight') {
+        let kg = from === 'g' ? val/1000 : from === 'lb' ? val*0.453592 : val;
+        result = to === 'g' ? kg*1000 : to === 'lb' ? kg/0.453592 : kg;
+      }
+      else if (typeEl.value === 'temperature') {
+        if (from === 'C') result = to === 'F' ? (val*9/5)+32 : to === 'K' ? val+273.15 : val;
+        if (from === 'F') result = to === 'C' ? (val-32)*5/9 : to === 'K' ? (val-32)*5/9+273.15 : val;
+        if (from === 'K') result = to === 'C' ? val-273.15 : to === 'F' ? (val-273.15)*9/5+32 : val;
+      }
+      resultBox.textContent = `${result.toFixed(decimals)} ${to}`;
+    }
+
+    swapBtn.addEventListener('click', () => {
+      const temp = fromUnitEl.value;
+      fromUnitEl.value = toUnitEl.value;
+      toUnitEl.value = temp;
+      convert();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(resultBox.textContent);
+      alert('Copied: ' + resultBox.textContent);
+    });
+
+    typeEl.addEventListener('change', () => { populateUnits(typeEl.value); convert(); });
+    decimalsEl.addEventListener('change', convert);
+    inputValueEl.addEventListener('input', convert);
+    fromUnitEl.addEventListener('change', convert);
+    toUnitEl.addEventListener('change', convert);
+
+    populateUnits(typeEl.value);
+    convert();
+  </script></body>
+</html>
